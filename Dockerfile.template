@@ -1,0 +1,20 @@
+FROM golang:{{ env.variant | ltrimstr("go") }}-alpine{{ .alpine }} AS build
+
+ENV DELVE_VERSION={{ .version }}
+
+RUN set -ex; \
+    apk add --no-cache \
+        file \
+        bash \
+        clang \
+        lld \
+        musl-dev \
+        pkgconfig \
+        git \
+        make;
+
+RUN CGO_ENABLED=0 go install "github.com/go-delve/delve/cmd/dlv@${DELVE_VERSION}";
+
+FROM scratch
+
+COPY --from=build /go/bin/dlv /dlv
